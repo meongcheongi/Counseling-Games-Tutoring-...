@@ -1,0 +1,150 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>타자 연습 게임</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff;
+        }
+
+        #score {
+            font-size: 24px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        #inputField {
+            font-size: 24px;
+            padding: 10px;
+            width: 80%;
+            max-width: 600px;
+            margin-top: 20px;
+        }
+
+        .falling-word {
+            position: absolute;
+            font-size: 24px;
+            color: #333;
+            animation: fall 5s infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                top: -50px;
+            }
+            100% {
+                top: 100%;
+            }
+        }
+
+        #timer {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>타자 연습 게임</h1>
+    <div id="score">점수: 0</div>
+    <input type="text" id="inputField" placeholder="여기에 입력하세요" autofocus>
+    <div id="timer">남은 시간: <span id="timeLeft">30</span>초</div>
+
+    <script>
+        const words = [
+            "비지시적", "내담자 중심", "이론 적용", "인간중심", "비지시적 단계", 
+            "내담자 중심 단계", "이론 적용 단계", "인간중심 단계", "경청", "공감", 
+            "무조건적 수용", "반영", "명료화", "요약", "반복연습", "자아실현 촉진", 
+            "내담자 주체성 강조"
+        ];
+
+        let score = 0;
+        let timeLeft = 30;
+        let speed = 5; // 게임의 초기 속도 (낮을수록 빠르게 떨어짐)
+        let timer;
+        let wordArray = [];
+        let gameOver = false;
+
+        // 게임 시작
+        function startGame() {
+            setInterval(() => {
+                if (!gameOver) {
+                    createFallingWord();
+                }
+            }, 1500); // 1.5초마다 새로운 단어가 떨어짐
+
+            // 타이머 설정
+            setInterval(() => {
+                if (timeLeft > 0 && !gameOver) {
+                    timeLeft--;
+                    document.getElementById("timeLeft").textContent = timeLeft;
+                } else if (timeLeft === 0) {
+                    gameOver = true;
+                    alert("게임 오버! 최종 점수: " + score);
+                }
+            }, 1000);
+        }
+
+        // 떨어지는 단어 만들기
+        function createFallingWord() {
+            const word = words[Math.floor(Math.random() * words.length)];
+            const fallingWord = document.createElement("div");
+            fallingWord.classList.add("falling-word");
+            fallingWord.textContent = word;
+            fallingWord.style.left = Math.random() * (window.innerWidth - 200) + "px";
+            document.body.appendChild(fallingWord);
+
+            // 단어가 바닥에 닿으면 삭제
+            setTimeout(() => {
+                if (fallingWord) {
+                    document.body.removeChild(fallingWord);
+                    updateScore(-15); // 틀린 단어는 -15점
+                }
+            }, 5000); // 5초 후에 사라짐
+        }
+
+        // 점수 업데이트
+        function updateScore(points) {
+            score += points;
+            document.getElementById("score").textContent = `점수: ${score}`;
+            
+            // 점수가 100점에 도달하면 스피드 증가
+            if (score >= 100) {
+                speed = 3; // 스피드 업 (단어 떨어지는 속도가 빨라짐)
+            }
+
+            // 점수가 0 이하가 되면 게임 오버
+            if (score <= 0) {
+                gameOver = true;
+                alert("게임 오버! 최종 점수: " + score);
+            }
+        }
+
+        // 입력 필드에서 텍스트를 입력했을 때
+        document.getElementById("inputField").addEventListener('input', (e) => {
+            if (gameOver) return;
+
+            const typedWord = e.target.value.trim();
+            const fallingWords = document.querySelectorAll(".falling-word");
+
+            for (let i = 0; i < fallingWords.length; i++) {
+                if (fallingWords[i].textContent === typedWord) {
+                    document.body.removeChild(fallingWords[i]);
+                    updateScore(10); // 맞춘 단어는 +10점
+                    e.target.value = ""; // 입력 필드 초기화
+                    break;
+                }
+            }
+        });
+
+        // 게임 시작
+        startGame();
+    </script>
+</body>
+</html>
